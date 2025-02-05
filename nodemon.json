@@ -1,0 +1,5 @@
+{
+  "watch": ["main.go"],
+  "ext": "go",
+  "exec": "build_and_run.bat"
+}
