@@ -184,7 +184,7 @@ func handleStore(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// * print the data
-	fmt.Printf("Data: %+v\n", data)
+	fmt.Printf("Data: %+v\n", data) // Print the data
 
 	// Store the data in the database
 	db.StoreGyroData(data)

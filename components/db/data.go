@@ -44,11 +44,20 @@ func Connect() (bool, error) {
 
 // * store data to mongo db and use upper camel case for function name
 func StoreGyroData(data schema.GyroData) (bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel() // Defer cancel the context
-	currentTime := time.Now()
-	data.TimeStamp = currentTime.Format(time.RFC3339)
-	_, err := collection.InsertOne(ctx, data)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second) // Create a context with timeout
+	defer cancel()                                                           // Defer cancel the context
+
+	// load Bangkok timezone
+	loc, err := time.LoadLocation("Asia/Bangkok")
+	if err != nil {
+		return false, err
+	}
+
+	currentTime := time.Now().In(loc) // Get current time
+
+	data.DateTime = currentTime.Format(time.RFC3339) // Set timestamp to current time
+	data.TimeStamp = currentTime.UnixMilli()         // Set timestamp to current time
+	_, err = collection.InsertOne(ctx, data)
 	if err != nil {
 		return false, err
 	}
@@ -62,11 +71,13 @@ func GetGyroData() ([]schema.GyroData, error) {
 	if err != nil {
 		return nil, err
 	}
-	var Data []schema.GyroData
-	if err = cursor.All(ctx, &Data); err != nil {
+	defer cursor.Close(ctx)
+
+	var gyroData []schema.GyroData
+	if err = cursor.All(ctx, &gyroData); err != nil {
 		return nil, err
 	}
-	return Data, nil
+	return gyroData, nil
 }
 
 func GetGyroDataByDeviceAddress(DeviceAddress string) ([]schema.GyroData, error) {
@@ -80,17 +91,13 @@ func GetGyroDataByDeviceAddress(DeviceAddress string) ([]schema.GyroData, error)
 	if err != nil {
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 
-	var Data []schema.GyroData
-	if err = cursor.All(ctx, &Data); err != nil {
+	var gyroData []schema.GyroData
+	if err = cursor.All(ctx, &gyroData); err != nil {
 		return nil, err
 	}
-
-	if len(Data) == 0 {
-		return nil, errors.New("no data found")
-	}
-
-	return Data, nil
+	return gyroData, nil
 }
 
 func GetGyroDataByDeviceAddressLatest(DeviceAddress string) (schema.GyroData, error) {

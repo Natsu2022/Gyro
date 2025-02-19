@@ -12,7 +12,8 @@ type GyroStruct struct {
 
 type GyroData struct {
 	DeviceAddress   string     `json:"DeviceAddress"`
-	TimeStamp       string     `json:"TimeStamp"`
+	DateTime        string     `json:"DateTime"`
+	TimeStamp       int64      `json:"TimeStamp"`
 	X               GyroStruct `json:"X"`
 	Y               GyroStruct `json:"Y"`
 	Z               GyroStruct `json:"Z"`
