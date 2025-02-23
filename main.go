@@ -14,6 +14,7 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gorilla/websocket"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Handle WebSocket connections
@@ -28,6 +29,81 @@ var clients = make(map[*websocket.Conn]bool)
 var clientsStore = make(map[*websocket.Conn]bool)
 
 var DeviceAdd = "test"
+
+func handleRegisterDevice(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json") // Set the content type to JSON
+
+	// generate device address
+	deviceAddress := fmt.Sprintf("device-%d", time.Now().UnixNano())
+
+	// display device address
+	// 		fmt.Println("Device Address:", deviceAddress)
+
+	// * store device address to database
+	if _, err := db.RegisterDevice(deviceAddress); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// * send device address .json to client
+	response := map[string]string{"deviceAddress": deviceAddress}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintf(w, `{"message": "Device registered!"}`)
+}
+
+func handleGetDeviceAddress(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json") // Set the content type to JSON
+
+	// * get device address from database
+	deviceAddresses, err := db.GetDeviceAddress()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// * send device addresses .json to client
+	response := map[string][]string{"deviceAddresses": deviceAddresses}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func handleGetDeviceAddressByDeviceAddress(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json") // Set the content type to JSON
+
+	// Get the device address from the URL
+	deviceAddress := r.URL.Path[len("/checkdeviceaddresses/"):]
+	log.Println("Received request for device address:", deviceAddress)
+
+	// Get the data from the database
+	deviceAddresses, err := db.GetDeviceAddressByDeviceAddress(deviceAddress)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "No documents found", http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Check if the result is empty
+	if len(deviceAddresses) == 0 {
+		log.Println("No device addresses found for:", deviceAddress)
+		http.Error(w, "No device addresses found", http.StatusNotFound)
+		return
+	}
+
+	// Encode the data into JSON
+	if err := json.NewEncoder(w).Encode(deviceAddresses); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Println("Successfully retrieved device addresses for:", deviceAddress)
+}
 
 // Handle a WebSocket connection
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
@@ -307,7 +383,7 @@ func handleMQTT() {
 		log.Fatal(token.Error())
 	}
 
-	fmt.Println("MQTT client connected and subscribed to topic")
+	fmt.Println("MQTT client connected and subscribed to topic.     ")
 }
 
 // Main function
@@ -346,9 +422,18 @@ func main() {
 		// ! clear data and change device address
 		http.HandleFunc("/clean", handleCleanData)
 
+		// ! register device
+		http.HandleFunc("/registerdevice", handleRegisterDevice)
+
+		// ! get device address
+		http.HandleFunc("/deviceaddresses", handleGetDeviceAddress)
+
+		// ! get device address by device address
+		http.HandleFunc("/checkdeviceaddresses/", handleGetDeviceAddressByDeviceAddress)
+
 		// TODO: Start the server in a goroutine
 		go func() {
-			fmt.Println("Server started at Gyro Server")
+			fmt.Println("Server started at Gyro Server.")
 			if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
 				log.Fatal("Error starting server:", err)
 			}

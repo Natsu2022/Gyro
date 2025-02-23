@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -127,4 +128,74 @@ func CleanData() (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func RegisterDevice(DeviceAddress string) (bool, error) {
+	if len(DeviceAddress) == 0 {
+		return false, errors.New("device address is empty")
+	}
+	collection = client.Database(env.GetEnv("MONGO_DB")).Collection(env.GetEnv("MONGO_DEVICECOLLECTION"))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := collection.InsertOne(ctx, bson.M{"deviceaddress": DeviceAddress})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func GetDeviceAddress() ([]string, error) {
+	collection = client.Database(env.GetEnv("MONGO_DB")).Collection(env.GetEnv("MONGO_DEVICECOLLECTION"))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second) // Create a context with timeout
+	defer cancel()
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var deviceAddresses []string
+	for cursor.Next(ctx) {
+		var result struct {
+			DeviceAddress string `bson:"deviceaddress"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+		deviceAddresses = append(deviceAddresses, result.DeviceAddress)
+	}
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+	return deviceAddresses, nil
+}
+
+func GetDeviceAddressByDeviceAddress(deviceAddress string) ([]string, error) {
+	collection = client.Database(env.GetEnv("MONGO_DB")).Collection(env.GetEnv("MONGO_DEVICECOLLECTION"))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second) // Create a context with timeout
+	defer cancel()
+
+	filter := bson.M{"deviceaddress": deviceAddress}
+	log.Println("Querying database with filter:", filter)
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var deviceAddresses []string
+	for cursor.Next(ctx) {
+		var result struct {
+			DeviceAddress string `bson:"deviceaddress"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+		deviceAddresses = append(deviceAddresses, result.DeviceAddress)
+	}
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+	log.Println("Found device addresses:", deviceAddresses)
+	return deviceAddresses, nil
 }
