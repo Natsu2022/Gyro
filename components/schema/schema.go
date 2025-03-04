@@ -25,3 +25,8 @@ type PasswordRequest struct {
 	Password string `json:"Password"`
 	CFP      string `json:"CFP"`
 }
+
+type User struct {
+	Email    string `json:"Email"`
+	Password string `json:"Password"`
+}

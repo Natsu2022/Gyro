@@ -3,33 +3,34 @@ package env
 import (
 	"log"
 	"os"
-	"strings"
 
 	"github.com/joho/godotenv"
 )
 
-// TODO: Load environment variables
-func LoadEnv() (bool, error) {
-	env := os.Getenv("GO_ENV") // Set GO_ENV to "development" or "production"
+// LoadEnv loads the environment variables from the appropriate .env file
+func LoadEnv() error {
+	env := os.Getenv("GO_ENV")
+	var envFile string
 
-	env = strings.ToLower(env)
-
-	if env == "" {
-		env = "dev" // Default to development
-	} else if env != "dev" && env != "prod" {
-		log.Fatalf("Invalid environment: %s", env)
-		return false, nil
+	switch env {
+	case "Prod":
+		envFile = ".env.prod"
+	case "Dev":
+		envFile = ".env.dev"
+	default:
+		envFile = ".env.dev"
 	}
 
-	err := godotenv.Load(".env." + env)
+	err := godotenv.Load(envFile)
 	if err != nil {
-		log.Fatalf("Error loading .env file for %s environment: %v", env, err)
-		return false, err
+		log.Printf("Error loading .env file for %s environment: %v", env, err)
+		return err
 	}
-	return true, nil
+
+	return nil
 }
 
-// Get environment variable
+// GetEnv retrieves the value of the environment variable named by the key.
 func GetEnv(key string) string {
 	return os.Getenv(key)
 }

@@ -2,4 +2,4 @@
     "watch": ["*.go"],
     "ext": "go",
     "exec": "./build_and_run"
-  }
+}
