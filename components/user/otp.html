@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta   charset="UTF-8">
+        <meta   name="viewport" 
+                content="width=device-width, 
+                        initial-scale=1.0">
+        <title>OTP Verification</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #0d0f0e;
+                align-items: center;
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                border-radius: 2%;
+                width: 90%;
+                margin: 0 auto;
+                background-color: #1c1f1e;
+                padding: 20px;
+                box-shadow: 0 0 10px rgba(12, 61, 49, 0.486);
+            }
+            .otp {
+                border-radius: 2%;
+                margin: 0 auto;
+                padding: 20px;
+                padding-top: 20%;
+                padding-bottom: 20%;
+                background-color: #c1dfd5;
+                text-align: center;
+                align-items: center;
+            }
+            .bottom {
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #1c1f1e;
+                text-align: center;
+            }
+            .otp_text {
+                font-size: 1.5rem;
+                color: #035f4b;
+                text-align: center;
+                font-weight: bold;
+            }
+            h1 {
+                color: #ffffff;
+            }
+            p {
+                color: #666666;
+            }
+            
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Hello, {{.Name}}!</h1>
+            <p>{{.Message}}</p>
+            <div class="otp">
+                <p><span class="otp_text">{{.OTP}}</span></p>
+            </div>
+            <div class="bottom">
+                <p>Message</p>
+            </div>
+        </div>
+    </body>
+</html>

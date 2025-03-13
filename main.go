@@ -61,8 +61,8 @@ func main() {
 			}
 		}()
 
-		//? Start MQTT client
-		go mosquitto.HandleMQTT()
+		//TODO Start MQTT client
+		go mosquitto.HandleMQTT() //*DONE Handle MQTT connection and subscribe to topic
 
 		// Wait for 'q' or 'Q' to stop the server
 		var input string
