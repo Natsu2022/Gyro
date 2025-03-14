@@ -56,8 +56,34 @@ func Subscribe() {
 	fmt.Printf("Subscribed to topic: %s\n", topic)
 }
 
+// Publish data to a topic
+func Publish(topic string, data schema.GyroData) {
+	payload, err := json.Marshal(data)
+	if err != nil {
+		log.Println("Error marshaling data:", err)
+		return
+	}
+	if token := client.Publish(topic, 1, false, payload); token.Wait() && token.Error() != nil {
+		log.Println("Error publishing data:", token.Error())
+	}
+	log.Printf("Published data to topic: %s\n", topic)
+}
+
+func GenerateAndPublishData() {
+	data := schema.GyroData{
+		// Fill in the fields with appropriate values
+		// Example:
+		// Field1: "value1",
+		// Field2: 123,
+		// ...
+	}
+
+	Publish("pub_data", data)
+}
+
 // Start MQTT handling
 func HandleMQTT() {
 	InitMQTT()
 	go Subscribe() // Start subscription in a separate goroutine
+	GenerateAndPublishData()
 }
