@@ -1,6 +1,9 @@
 # Environment files
+.env.dev
+.env.prod
 
 # Go module files
+go.sum
 
 # Binaries
 *.exe
