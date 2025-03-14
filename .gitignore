@@ -21,3 +21,6 @@ go.sum
 .idea/
 *.swp
 *.swo
+
+# Log files
+*.log
