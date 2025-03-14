@@ -3,7 +3,6 @@
 .env.prod
 
 # Go module files
-go.mod
 go.sum
 
 # Binaries
